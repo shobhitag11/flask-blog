@@ -1,0 +1,38 @@
+from flaskblog import db
+from datetime import datetime
+from flaskblog import login_manager
+from flask_login import UserMixin
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    # unique is True becasue no two values for username and password can't be same.
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    # nullable is False because, user must enter some value for each attribute.
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    # image file for user profile picture.
+    image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
+    password = db.Column(db.String(60), nullable=False)
+    # author of the post will be the user!-> one to many relationship
+    posts= db.relationship('Post', backref= 'author', lazy=True)
+
+    # repr does how our object is printed out, similar to __str__()
+    def __repr__(self):
+        return f"User('{self.username}', '{self.email}', '{self.image_file}')"
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    # unique is True becasue no two values for username and password can't be same.
+    title = db.Column(db.String(100), nullable=False)
+    # nullable is False because, user must enter some value for each attribute.
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    # image file for user profile picture.
+    content = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    # repr does how our object is printed out, similar to __str__()
+    def __repr__(self):
+        return f"Post('{self.title}', '{self.date_posted}')"
